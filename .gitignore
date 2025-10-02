@@ -1,0 +1,53 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+.eggs/
+.build/
+dist/
+pip-wheel-metadata/
+
+# Virtual envs
+.venv/
+venv/
+ENV/
+environment_setup.sh
+
+# --- Django ---
+*.log
+db.sqlite3
+/media/
+staticfiles/
+static/
+.collectedstatic/
+local_settings.py
+
+# Env & secrets
+.env
+.env.*
+*.pem
+*.key
+
+# --- Tests / tooling ---
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.dmypy.json
+.pyre/
+
+# --- IDE / OS ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# --- Node (if you have front-end bits) ---
+node_modules/
+build/
+.cache/
+
+# --- Docker ---
+**/.dockerignore
+docker-compose.override.yml
