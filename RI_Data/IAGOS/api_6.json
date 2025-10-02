@@ -1,0 +1,12 @@
+{"API name": ["Get: GET API"],
+  "Description": ["Return a data product based on the given ID (ID, UUID, PID). The request GET API to retrieve a single data products is: https://services.iagos-data.fr/prod/v2.0/data_products/get/<ID>"],
+  "Url": ["https://services.iagos-data.fr/prod/swagger-ui/index.html#/Data%20product%20service/get_12"],
+  "Category": ["Environment"],
+  "Provider": ["IAGOS"],
+  "ServiceType": ["Open"],
+  "Documentation": [],
+  "Architectural Style": ["REST"],
+  "Endpoint Url": ["https://services.iagos-data.fr/prod/v2.0/data_products/get/<ID>"],
+  "Support SSL": ["Yes"],
+  "Logo": [""]
+}

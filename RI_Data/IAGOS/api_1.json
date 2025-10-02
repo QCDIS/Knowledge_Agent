@@ -1,0 +1,12 @@
+{"API name": ["All Data Products. GET API"],
+  "Description": ["Return all Data Products, The request GET API to get all the data products is: https://services.iagos-data.fr/prod/v2.0/data_products"],
+  "Url": ["https://services.iagos-data.fr/prod/swagger-ui/index.html#/Data%20product%20service/all_15"],
+  "Category": ["Environment"],
+  "Provider": ["IAGOS"],
+  "ServiceType": ["Open"],
+  "Documentation": [],
+  "Architectural Style": ["REST"],
+  "Endpoint Url": ["https://services.iagos-data.fr/prod/v2.0/data_products"],
+  "Support SSL": ["Yes"],
+  "Logo": [""]
+}

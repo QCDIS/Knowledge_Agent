@@ -1,0 +1,5 @@
+https://developer.anaee.eu/
+https://developer.anaee.eu/apis
+https://developer.anaee.eu/api-details#api=biomaazuremodelexecutornetframework20200226025441
+https://developer.anaee.eu/api-details#api=bioma-crop-infection-models
+https://developer.anaee.eu/api-details#api=crea-era5-mirror

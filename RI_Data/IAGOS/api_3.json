@@ -1,0 +1,12 @@
+{"API name": ["Columns: GET API"],
+  "Description": ["Return all data products and columns. The request GET API to get the data products is: https://services.iagos-data.fr/prod/v2.0/data_products/columns"],
+  "Url": ["https://services.iagos-data.fr/prod/swagger-ui/index.html#/Data%20product%20service/columns_2"],
+  "Category": ["Environment"],
+  "Provider": ["IAGOS"],
+  "ServiceType": ["Open"],
+  "Documentation": [],
+  "Architectural Style": ["REST"],
+  "Endpoint Url": ["https://services.iagos-data.fr/prod/v2.0/data_products/columns"],
+  "Support SSL": ["Yes"],
+  "Logo": [""]
+}

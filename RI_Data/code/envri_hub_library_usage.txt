@@ -1,0 +1,93 @@
+ENVRI HUB library usage
+In this notebook we'll showcase the intended usage of the VRE-Lib component developed by WP 13 and WP 14.
+The VRE-Lib is available as a Python package on the public package index un the envrihub name.
+This means it can be installed with: 
+In [7]:  
+
+```! pip install --upgrade envrihub ```
+
+
+As long as you don't have something perverted in mind (we'll see the nasty stuff later in this notebook), you'll need to import only one thing from the package: the Hub object. 
+In [8]:  
+```
+from envrihub import Hub
+hub = Hub()
+```
+
+That is the only thing you need to search, retrieve, and access resources listed on the Envri-Hub catalogue.Searh for resources in the catalogue
+Let's begin from the search task, although we recommend doing it throught the COS Web UI, you can script it too with the Hub's search_catalogue method.
+Let's demonstrate it's usage.Free text search
+The most basic type of search you can perform is a free text one, much like you would do in any search engine. 
+In [9]:  
+```
+for res in hub.search_catalogue('beacon'):
+    print(res.title)
+    print(f'\t resource id: {res.id}')
+    print(f'\t resource type: {res.type}')
+    print(f'\t resurce description: {res.description}\n\n')
+```
+
+ The search_catalogue method always return a Generator object, i.e. somthing you can iterate on, so you can process search results one by one as they get fetched from the catalogue.Each result has the shape of a Distribution object, containing anything you need to work with that resource, including the data access logic. We'll see that in the detail later, for now it's enough to know that all of them have an id that is unique in the Catalogue and there are two types of them: Web Services, and Downloadable Files.
+
+Spatial coverage search
+We can query the catalogue also by specifying a region of interest. Such a region can be expressed as a WKT string, a format used by most GIS applications, so you can copy-paste spatial information from your GIS of choice and shove it straight into the search_catalogue function. In [10]:  geography = 'POLYGON((10.70 48.34,28.98 48.34, 28.98 36.17, 10.70 36.17, 10.70 48.34))'
+```
+for res in hub.search_catalogue(geography = geography):
+    print(res.title)
+    print(f'\t resource id: {res.id}')
+    print(f'\t resource type: {res.type}')
+    print(f'\t resurce description: {res.description}\n\n') 
+```
+
+
+EXV and temporal coverage
+We can think of other kinds of facets, like time boundaries, or specific variables of intersest.
+The exv field accepts as value any of the known EXVs in the ENVRI-Hub catalogue  
+In [11]:  
+```
+for res in hub.search_catalogue(exv = "https://vocab.nerc.ac.uk/collection/EXV/current/EXV028/",
+                               start_date = '2024-01-01', end_date = '2025-01-01'):
+    print(res.title)
+    print(f'\t resource id: {res.id}')
+    print(f'\t resource type: {res.type}')
+    print(f'\t resurce description: {res.description}\n\n')
+```
+
+
+
+or a combination of thereof expressed as a list. 
+In [12]:  
+```
+for res in hub.search_catalogue(exv = ["https://vocab.nerc.ac.uk/collection/EXV/current/EXV028/", 
+                                       "https://vocab.nerc.ac.uk/collection/EXV/current/EXV029/"]):
+    print(res.title)
+    print(f'\t resource id: {res.id}')
+    print(f'\t resource type: {res.type}')
+    print(f'\t resurce description: {res.description}\n\n')
+
+```
+
+Superuberduper advanced features
+At the beginning we mentioned the possibility of doing questionable stuff with the package, so let's talk about it.Non integrated servies client from OpenAPI specification
+You don't need a Catalogue record to build a Data Access Object! 
+That's because we know not everything can be shoved into the catalogue: for as much integration work the EPOS people can do, there we always be some nasty new (or old) stuff that just won't fit becasue no-one in the developers' pit saw it coming.
+For instance, the Catalogue right now does not support Web Services with POST methods, but if you manage to get their OpenAPI specification, the envrihub library can build a client for them! 
+
+In [24]:  
+```
+import os
+import pandas as pd
+from io import BytesIO, StringIO
+from envrihub.data_access.open_api_client import build_web_service_client  We took a trip to AnaEE's catalogue and downloaded the OpenAPI specification of one of their services. From that we can build a client with almost zero effort. In [25]:  base_url = 'https://api.anaee.eu/crea-aa-dailymeteo'
+specification_file_path = 'data' + os.sep + 'anaeeweather.json'
+
+anaee_weather = build_web_service_client(specification_file_path)()
+```
+
+
+Now it's finally time to access the actual data with the dao attribute, that always comes with helpful documentation you can access with the help() function or with third party Jupyter extensions. 
+In [18]:  
+```
+catalogue_dao = res.dao
+help(catalogue_dao)
+```

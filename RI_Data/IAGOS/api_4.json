@@ -1,0 +1,12 @@
+{"API name": ["Create: POST API"],
+  "Description": ["Create a data product. The request GET API to create the data products is: https://services.iagos-data.fr/prod/v2.0/data_products/create"],
+  "Url": ["https://services.iagos-data.fr/prod/swagger-ui/index.html#/Data%20product%20service/create_12"],
+  "Category": ["Environment"],
+  "Provider": ["IAGOS"],
+  "ServiceType": ["Restricted"],
+  "Documentation": [],
+  "Architectural Style": ["REST"],
+  "Endpoint Url": ["https://services.iagos-data.fr/prod/v2.0/data_products/create"],
+  "Support SSL": ["Yes"],
+  "Logo": [""]
+}

@@ -6,7 +6,7 @@ import os
 import streamlit as st
 import json
 import logfire
-from supabase import Client
+from supabase import Client, create_client
 from openai import AsyncOpenAI
 
 ####### HF Transformers ######
@@ -45,19 +45,19 @@ from pydantic_ai_expert import pydantic_ai_expert, PydanticAIDeps
 # Load environment variables
 from dotenv import load_dotenv
 load_dotenv()
-openai_api_key = "<OPENAI API KEY"
 
-supabase_url = "https://woqcpiqkhfhhmenrphph.supabase.co"
 
-supabase_key = "<PUT SUPABASE KEY>"
+
+openai_api_key = os.getenv("OPENAI_API_KEY")
+db_password = os.getenv("DB_PASSWORD")
+supabase_url = os.getenv("SUPABASE_URL")
+supabase_secret = os.getenv("SUPABASE_SECRET")
 
 openai_client = AsyncOpenAI(api_key=openai_api_key)
-supabase: Client = Client(
+supabase: Client = create_client(
     supabase_url,
-    supabase_key
+    supabase_secret
 )
-
-
 
 # Configure logfire to suppress warnings (optional)
 logfire.configure(send_to_logfire='never')
@@ -87,7 +87,7 @@ def display_message_part(part):
     # text
     elif part.part_kind == 'text':
         with st.chat_message("assistant"):
-            st.markdown(part.content)          
+            st.markdown(part.content)
 
 
 async def run_agent_with_streaming(user_input: str):
@@ -95,6 +95,8 @@ async def run_agent_with_streaming(user_input: str):
     Run the agent with streaming text for the user_input prompt,
     while maintaining the entire conversation in `st.session_state.messages`.
     """
+
+    #print("Printing user_input", user_input)
     # Prepare dependencies
     deps = PydanticAIDeps(
         supabase=supabase,
@@ -102,7 +104,7 @@ async def run_agent_with_streaming(user_input: str):
     )
 
     # deps = PydanticAIDeps(
-    #     supabase=supabase, 
+    #     supabase=supabase,
     #     hf_pipeline=hf_pipeline  # Replacing OpenAI client with Hugging Face
     # )
 
@@ -124,8 +126,8 @@ async def run_agent_with_streaming(user_input: str):
 
         # Now that the stream is finished, we have a final result.
         # Add new messages from this run, excluding user-prompt messages
-        filtered_messages = [msg for msg in result.new_messages() 
-                            if not (hasattr(msg, 'parts') and 
+        filtered_messages = [msg for msg in result.new_messages()
+                            if not (hasattr(msg, 'parts') and
                                     any(part.part_kind == 'user-prompt' for part in msg.parts))]
         st.session_state.messages.extend(filtered_messages)
 
@@ -136,8 +138,8 @@ async def run_agent_with_streaming(user_input: str):
 
 
 async def main():
-    st.title("Pydantic AI Agentic RAG")
-    st.write("Ask any question about Pydantic AI, the hidden truths of the beauty of this framework lie within.")
+    st.title("Environmental Expert")
+    st.write("Ask any question about the Environment and Earth Science")
 
     # Initialize chat history in session state if not present
     if "messages" not in st.session_state:
@@ -152,14 +154,14 @@ async def main():
                 display_message_part(part)
 
     # Chat input for the user
-    user_input = st.chat_input("What questions do you have about Pydantic AI?")
+    user_input = st.chat_input("What questions do you have about Environment?")
 
     if user_input:
         # We append a new request to the conversation explicitly
         st.session_state.messages.append(
             ModelRequest(parts=[UserPromptPart(content=user_input)])
         )
-        
+
         # Display user prompt in the UI
         with st.chat_message("user"):
             st.markdown(user_input)

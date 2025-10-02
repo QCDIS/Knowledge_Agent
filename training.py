@@ -1,66 +1,8 @@
-# from datasets import load_dataset
-# from trl import SFTConfig, SFTTrainer
-# from transformers import AutoTokenizer, AutoModelForCausalLM
-# from peft import LoraConfig
-
-
-# dataset = load_dataset("stanfordnlp/imdb", split="train")
-
-# peft_config = LoraConfig(
-#     r=16,
-#     lora_alpha=32,
-#     lora_dropout=0.05,
-#     bias="none",
-#     modules_to_save=["lm_head", "embed_token"],
-#     task_type="CAUSAL_LM",
-# )
-
-# training_args = SFTConfig(
-#     max_seq_length=128,
-#     output_dir="/tmp",
-# )
-# """
-# meta-llama/Llama-2-7b-hf
-# meta-llama/Meta-Llama-3.1-8B-Instruct
-# """
-# model = AutoModelForCausalLM.from_pretrained(
-#     "meta-llama/Meta-Llama-3.1-8B-Instruct",
-#     load_in_8bit=True,
-#     #load_in_4bit=True,
-#     device_map="auto",
-# )
-
-# print(model)
-
-# #model.gradient_checkpointing_enable()
-
-# trainer = SFTTrainer(
-#     model,
-#     train_dataset=dataset,
-#     args=training_args,
-#     peft_config=peft_config,
-# )
-# trainer.train()
-
-
-
-
 """
 https://cdi.seadatanet.org/report/5/json
 """
 
 
-# from transformers import AutoTokenizer, AutoModelForTokenClassification
-# from transformers import pipeline
-
-# tokenizer = AutoTokenizer.from_pretrained("dslim/bert-base-NER")
-# model = AutoModelForTokenClassification.from_pretrained("dslim/bert-base-NER")
-
-# nlp = pipeline("ner", model=model, tokenizer=tokenizer)
-# example = "My name is Wolfgang and I live in Berlin"
-# example = "'What?', 'Where?', 'When?', 'How?', 'Who?', 'How to get data?', 'Other info', 'CDI-metadata'"
-# ner_results = nlp(example)
-# print(ner_results)
 
 from datasets import Dataset
 from transformers import AutoTokenizer, TrainingArguments

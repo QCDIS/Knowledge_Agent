@@ -1,0 +1,12 @@
+{"API name": ["Test if the data service is alive. GET API"],
+  "Description": ["Test if the data product is alive, The request GET API to check whether the service is live is: https://services.iagos-data.fr/prod/v2.0/data_products/alive"],
+  "Url": ["https://services.iagos-data.fr/prod/swagger-ui/index.html#/Data%20product%20service/alive_23"],
+  "Category": ["Environment"],
+  "Provider": ["IAGOS"],
+  "ServiceType": ["Open"],
+  "Documentation": [],
+  "Architectural Style": ["REST"],
+  "Endpoint Url": ["https://services.iagos-data.fr/prod/v2.0/data_products/alive"],
+  "Support SSL": ["Yes"],
+  "Logo": [""]
+}

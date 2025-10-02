@@ -1,0 +1,12 @@
+{"API name": ["Delete: DELETE API"],
+  "Description": ["Delete a data product. The request DELETE API to delete the data products is: https://services.iagos-data.fr/prod/v2.0/data_products/delete/<ID>"],
+  "Url": ["https://services.iagos-data.fr/prod/swagger-ui/index.html#/Data%20product%20service/delete_11"],
+  "Category": ["Environment"],
+  "Provider": ["IAGOS"],
+  "ServiceType": ["Restricted"],
+  "Documentation": [],
+  "Architectural Style": ["REST"],
+  "Endpoint Url": ["https://services.iagos-data.fr/prod/v2.0/data_products/delete/<ID>"],
+  "Support SSL": ["Yes"],
+  "Logo": [""]
+}

@@ -1,4 +1,3 @@
-
 from __future__ import annotations as _annotations
 
 from dataclasses import dataclass
@@ -11,15 +10,30 @@ import os
 from pydantic_ai import Agent, ModelRetry, RunContext
 from pydantic_ai.models.openai import OpenAIModel
 from openai import AsyncOpenAI
-from supabase import Client
+from supabase import Client, create_client
 from typing import List
 
 load_dotenv()
 
-openai_api_key = "<PUT OPENAI API KEY>"
-llm = os.getenv('LLM_MODEL', 'gpt-4o-mini')
-model = OpenAIModel("gpt-4o-mini", api_key=openai_api_key)
-#model = OpenAIModel(llm)
+
+
+openai_api_key = os.getenv("OPENAI_API_KEY")
+db_password = os.getenv("DB_PASSWORD")
+supabase_url = os.getenv("SUPABASE_URL")
+supabase_secret = os.getenv("SUPABASE_SECRET")
+
+openai_client = AsyncOpenAI(api_key=openai_api_key)
+supabase: Client = create_client(
+    supabase_url,
+    supabase_secret
+)
+# gpt-5-mini
+# gpt-4.1-mini
+llm = os.getenv('LLM_MODEL', 'gpt-4.1')
+model = OpenAIModel("gpt-4.1", api_key=openai_api_key)
+
+
+
 
 logfire.configure(send_to_logfire='if-token-present')
 
@@ -32,14 +46,12 @@ system_prompt = """
 You are an expert at Environmental earth science and you have access to all the documentation to,
 including examples, an API reference, and other resources.
 
-Your only job is to assist with this and you don't answer other questions besides describing what you are able to do.
 
-Don't ask the user before taking an action, just do it. Always make sure you look at the documentation with the provided tools before answering the user's question unless you have already.
+Always let the user know when you didn't find the answer in the documentation or the right URL - DO NOT MAKE YOUR OWN URLs. Only Use URLS from the context.
+Always generate your result with an appropriate URL that you get from the following context, URLS, Summary and Title.
 
-When you first look at the documentation, always start with RAG.
-Then also always check the list of available documentation pages and retrieve the content of page(s) if it'll help.
+Ask follow-up questions if you do not have enough context. If the context is not clear ask try to answer with your own knowledge and also ask follow up questions.
 
-Always let the user know when you didn't find the answer in the documentation or the right URL - be honest.
 """
 
 pydantic_ai_expert = Agent(
@@ -76,28 +88,29 @@ async def retrieve_relevant_documentation(ctx: RunContext[PydanticAIDeps], user_
     try:
         # Get the embedding for the query
         query_embedding = await get_embedding(user_query, ctx.deps.openai_client)
-        
+        print("User query", user_query, query_embedding)
         # Query Supabase for relevant documents
         result = ctx.deps.supabase.rpc(
-            'match_site_pages',
+            'match_site_pages_5',
             {
                 'query_embedding': query_embedding,
-                'match_count': 5,
-                'filter': {'source': 'pydantic_ai_docs'}
+                'match_count': 10
             }
         ).execute()
-        
-        print("Relevant documents ................", result.data)
-
+        print("Length of returned data ", len(result.data))
+        print("Data ", result.data)
         if not result.data:
+            print("Returning from here ...")
             return "No relevant documentation found."
             
         # Format the results
         formatted_chunks = []
         for doc in result.data:
+            print("Printing DOC", doc)
             chunk_text = f"""
                 # {doc['title']}
-
+                # {doc['url']}
+                # {doc['summary']}
                 {doc['content']}
                 """
             formatted_chunks.append(chunk_text)
@@ -121,7 +134,6 @@ async def list_documentation_pages(ctx: RunContext[PydanticAIDeps]) -> List[str]
         # Query Supabase for unique URLs where source is pydantic_ai_docs
         result = ctx.deps.supabase.from_('site_pages') \
             .select('url') \
-            .eq('metadata->>source', 'pydantic_ai_docs') \
             .execute()
         
         if not result.data:
@@ -156,7 +168,14 @@ async def get_page_content(ctx: RunContext[PydanticAIDeps], url: str) -> str:
             .order('chunk_number') \
             .execute()
         
+        # result = ctx.deps.supabase.from_('site_pages') \
+        #     .select('title, content, chunk_number') \
+        #     .eq('url', url) \
+        #     .order('chunk_number') \
+        #     .execute()
+        
         if not result.data:
+            print("No content found ...")
             return f"No content found for URL: {url}"
             
         # Format the page with its title and all chunks

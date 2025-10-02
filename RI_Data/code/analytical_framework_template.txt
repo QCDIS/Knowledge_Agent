@@ -1,0 +1,12 @@
+Analytical Workflow Templates
+
+Overview
+This repository contains a curated collection of Common Workflow Langage templates meant to showcase how the services and resources provided in the ENVRI-Hub can be used to create meaningful data processing flows.
+
+Contributing
+If you can see this repo, you can contribute.
+Open a pull request and go with the flow.
+
+Authors and acknowledgment
+This project is funded by ENVRI-Hub-Next in the context of the ENVRI-Hub's Analytical Framework development.
+

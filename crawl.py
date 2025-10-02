@@ -9,6 +9,14 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from urllib.parse import urlparse
 from dotenv import load_dotenv
+import textwrap
+import abc
+
+
+from tqdm import tqdm
+import urllib.request
+import urllib.error
+import requests
 
 from crawl4ai import AsyncWebCrawler, BrowserConfig, CrawlerRunConfig, CacheMode
 from crawl4ai.markdown_generation_strategy import DefaultMarkdownGenerator
@@ -18,16 +26,21 @@ from supabase import create_client, Client
 
 load_dotenv()
 
-# Initialize OpenAI and Supabase clients
-opai_api_key = "<OPENAI API KEY"
-db_password = "<SUPABASE PASSWORD>"
-supabase_url = "https://woqcpiqkhfhhmenrphph.supabase.co"
-supabase_secret = "<SUPABASE SECRET>"
-openai_client = AsyncOpenAI(api_key=opai_api_key)
+
+
+
+
+openai_api_key = os.getenv("OPENAI_API_KEY")
+db_password = os.getenv("DB_PASSWORD")
+supabase_url = os.getenv("SUPABASE_URL")
+supabase_secret = os.getenv("SUPABASE_SECRET")
+
+openai_client = AsyncOpenAI(api_key=openai_api_key)
 supabase: Client = create_client(
     supabase_url,
     supabase_secret
 )
+
 
 @dataclass
 class ProcessedChunk:
@@ -39,7 +52,7 @@ class ProcessedChunk:
     metadata: Dict[str, Any]
     embedding: List[float]
 
-def chunk_text(text: str, chunk_size: int = 5000) -> List[str]:
+def chunk_text(text: str, chunk_size: int = 300) -> List[str]:
     """Split text into chunks, respecting code blocks and paragraphs."""
     chunks = []
     start = 0
@@ -83,7 +96,7 @@ def chunk_text(text: str, chunk_size: int = 5000) -> List[str]:
         # Move start position for next chunk
         start = max(start + 1, end)
 
-        print("Printing Chunk Text", chunk)
+        #print("Printing Chunk Text", chunk)
 
     return chunks
 
@@ -94,10 +107,12 @@ async def get_title_and_summary(chunk: str, url: str) -> Dict[str, str]:
     For the title: If this seems like the start of a document, extract its title. If it's a middle chunk, derive a descriptive title.
     For the summary: Create a concise summary of the main points in this chunk.
     Keep both title and summary concise but informative."""
-    
+    DELAY_MS = 140  # <- 110 milliseconds
+
     try:
+        await asyncio.sleep(DELAY_MS / 1000)
         response = await openai_client.chat.completions.create(
-            model=os.getenv("LLM_MODEL", "gpt-4o-mini"),
+            model=os.getenv("LLM_MODEL", "gpt-4.1-mini"),
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": f"URL: {url}\n\nContent:\n{chunk[:1000]}..."}  # Send first 1000 chars for context
@@ -112,6 +127,8 @@ async def get_title_and_summary(chunk: str, url: str) -> Dict[str, str]:
 async def get_embedding(text: str) -> List[float]:
     """Get embedding vector from OpenAI."""
     try:
+        # text-embedding-3-large
+        # text-embedding-3-small
         response = await openai_client.embeddings.create(
             model="text-embedding-3-small",
             input=text
@@ -127,11 +144,11 @@ async def process_chunk(chunk: str, chunk_number: int, url: str) -> ProcessedChu
     extracted = await get_title_and_summary(chunk, url)
     
     # Get embedding
-    embedding = await get_embedding(chunk)
+    embedding = await get_embedding(extracted['title'] + "\n" + extracted['summary'] + "\n" + chunk)
     
     # Create metadata
     metadata = {
-        "source": "pydantic_ai_docs",
+        "source": "environmental_docs",
         "chunk_size": len(chunk),
         "crawled_at": datetime.now(timezone.utc).isoformat(),
         "url_path": urlparse(url).path
@@ -238,18 +255,176 @@ def get_pydantic_ai_docs_urls():
     
     Returns:
         List[str]: List of URLs
-    """            
+    """  
+
+
+    
+    ## WORKING CODE FOR SEADATANET COMMENTED ###
     try:
-        urls = []
-        for i in range(850, 900):
-            urls.append("https://edmed.seadatanet.org/report/" + str(i) + "/")
-        return urls
+
+        
+
+        # sitemap_url_envri = ["https://envri.eu/wp-sitemap-posts-post-1.xml",
+        # "https://envri.eu/wp-sitemap-posts-page-1.xml",
+        # "https://envri.eu/wp-sitemap-taxonomies-category-1.xml",
+        # "https://envri.eu/wp-sitemap-taxonomies-post_tag-1.xml"
+        # ]
+        # envri_urls = []
+        # for sitemap in sitemap_url_envri:
+        #     response = requests.get(sitemap)
+        #     response.raise_for_status()
+            
+        #     root = ElementTree.fromstring(response.content)
+            
+        #     # Extract all URLs from the sitemap
+        #     namespace = {'ns': 'http://www.sitemaps.org/schemas/sitemap/0.9'}
+        #     envri_urls += [loc.text for loc in root.findall('.//ns:loc', namespace)]
+        
+        
+        
+
+
+        # seadatanet_urls = []
+        # for i in range(850, 1000):
+        #     seadatanet_urls.append("https://edmed.seadatanet.org/report/" + str(i) + "/")
+       
+
+        # icos_urls = ["https://meta.icos-cp.eu/objects/DLlJ-m63gJHSmiUipESYGuLd", 
+        #         "https://meta.icos-cp.eu/objects/1IxrtKdX-IhHJdTM9UMrSsbj", 
+        #         "https://meta.icos-cp.eu/objects/Mfe9bdiDJuMVXW7tIBJuJXMc",
+        #         "https://meta.icos-cp.eu/objects/A5Fby8ZbD2I-enYvFDsQvNAE",
+        #         "https://meta.icos-cp.eu/objects/2URn417sWYN0ROUJMIXjCiTq",
+        #         "https://meta.icos-cp.eu/objects/O5lzanad8Yr_t0Doc8U1W4zS", 
+        #         "https://meta.icos-cp.eu/objects/_1cSJaHszlKSAVAYBbp3VKzw", 
+        #         "https://meta.icos-cp.eu/objects/yUXwLrwO2uRgSiKEorv-ZZfw", 
+        #         "https://meta.icos-cp.eu/objects/yUXwLrwO2uRgSiKEorv-ZZfw",
+        #         "https://meta.icos-cp.eu/objects/5DkSoXP7Y1SZV4SeO1nyLBQW", 
+        #         "https://iagos.aeris-data.fr/download-instructions/", 
+        #         "https://www.iagos.org/", 
+        #         "http://www.argodatamgt.org/Access-to-data/Argo-GDAC-synchronization-service",
+        #         "https://data.marine.copernicus.eu/product/INSITU_GLO_PHY_TS_DISCRETE_MY_013_001/description",
+        #         "https://www.data-terra.org/pole-odatis/",
+        #         "https://data.blue-cloud.org/search/argo",
+        #         "https://www.data-terra.org/pole-odatis/",
+        #         "https://envrihub.vm.fedcloud.eu/",
+        #         "https://vocab.nerc.ac.uk/",
+        #         "https://fleetmonitoring.euro-argo.eu/dashboard?Status=Active",
+        #         "https://dataselection.euro-argo.eu/",
+        #         "https://erddap.ifremer.fr/erddap/tabledap/ArgoFloats.html",
+        #         "https://stac-browser.ifremer.fr/?.language=en"]
+
+        # with open("RI_Data/eLTER/urls.txt", "r") as file:
+        #     elter_urls = [line.strip() for line in file if line.strip()]
+        
+        # with open("RI_Data/AnaEE/urls.txt", "r") as file:
+        #     anaee_urls = [line.strip() for line in file if line.strip()]
+
+        with open("RI_Data/ECV/urls.txt", "r") as file:
+            ecv_urls = [line.strip() for line in file if line.strip()]
+
+        # urls = seadatanet_urls + icos_urls + elter_urls + anaee_urls + ecv_urls + envri_urls
+        with open("RI_Data/RI/explored_urls.txt", "r") as file:
+            RI_urls = [line.strip() for line in file if line.strip()]
+        
+        urls = RI_urls + ecv_urls
+        print("Printing URLs ", urls)
+
     except Exception as e:
         print(f"Error fetching sitemap: {e}")
-        return []       
+        return []    
+
+    print("Total number of URLs ", len(urls))
+    # https://gcos.wmo.int/site/global-climate-observing-system-gcos/essential-climate-variables
+    # and GOOS page: https://goosocean.org/what-we-do/framework/essential-ocean-variables/. 
+    # As you could see in this page: https://vocab.nerc.ac.uk/collection/EXV/current/, these 
+    # urls = ["https://gcos.wmo.int/site/global-climate-observing-system-gcos/essential-climate-variables/clouds", 
+    #         "https://gitlab.a.incd.pt/envri-hub-next/analytical-workflow-templates/-/blob/main/ICOS_data_access.ipynb?ref_type=heads"]
+    return urls
+
+async def processIAGOS(folder):
+    
+
+    json_files = [f for f in os.listdir(folder) if f.endswith('.json')]
+    print(json_files)
+    for file in json_files:
+        with open(folder + file) as f:
+            data = json.load(f)
+            print(data["Description"])
+
+            chunk_content = " Provider: " + " ".join(data["Provider"]) + " " + " ".join(data["Description"]) + " " + "Callable API Endpoint: " + " ".join(data["Endpoint Url"]) + " " + " Category: " + " ".join(data["Category"]) + " " + " Architectural Style: " + " " + " ".join(data["Architectural Style"]) + " Support SSL: " + " " + " ".join(data["Support SSL"])
+            
+            
+            #chunk_content = str(data["Description"]) + "Category: " + str(data["Category"]) + "Provider: " + str(data["Provider"]) + "Architectural Style:" + str(data["Architectural Style"]) + "Support SSL: " + str(data["Support SSL"])
+            
+            
+            
+            #print(chunk_content)
+            
+            #print(type(chunk_content))
+
+
+            extracted = await get_title_and_summary(chunk_content, " ".join(data["Url"]))
+    
+            # Get embedding
+            
+            # Create metadata
+            metadata = {
+                "source": "pydantic_ai_docs",
+                "chunk_size": len(chunk_content),
+                "crawled_at": datetime.now(timezone.utc).isoformat(),
+                "url_path": urlparse(" ".join(data["Endpoint Url"])).path
+    }
+         
+            
+            embedding = await get_embedding(chunk_content)
+            chunk = ProcessedChunk(
+                url = " ".join(data['Url']),
+                chunk_number = 0,
+                title=extracted['title'],
+                summary=extracted['summary'],
+                content = chunk_content,
+                metadata= metadata,
+                embedding=embedding
+            )
+
+            await insert_chunk(chunk)
+
+
+
+
+
+#     {"API name": ["Create: POST API"],
+#   "Description": ["Create a data product. The request GET API to create the data products is: https://services.iagos-data.fr/prod/v2.0/data_products/create"],
+#   "Url": ["https://services.iagos-data.fr/prod/swagger-ui/index.html#/Data%20product%20service/create_12"],
+#   "Category": ["Environment"],
+#   "Provider": ["IAGOS"],
+#   "ServiceType": ["Restricted"],
+#   "Documentation": [],
+#   "Architectural Style": ["REST"],
+#   "Endpoint Url": ["https://services.iagos-data.fr/prod/v2.0/data_products/create"],
+#   "Support SSL": ["Yes"],
+#   "Logo": [""]
+# }
+
+    # Create Chunks
+    # ProcessedChunk(
+    #     url=url,
+    #     chunk_number=chunk_number,
+    #     title=extracted['title'],
+    #     summary=extracted['summary'],
+    #     content=chunk,  # Store the original chunk content
+    #     metadata=metadata,
+    #     embedding=embedding
+    # )
+
+    
 
 
 async def main():
+    # IAGOS_folder = "/home/nafis/Development/Knowledge_Agent/RI_Data/IAGOS/"
+    # await processIAGOS(IAGOS_folder)
+
+    #return 
     # Get URLs from Pydantic AI docs
     urls = get_pydantic_ai_docs_urls()
     if not urls:
@@ -262,40 +437,3 @@ async def main():
 if __name__ == "__main__":
     asyncio.run(main())
 
-"""
-
-[![Back to home](https://edmed.seadatanet.org/images/seadatanet_logo_big.png)](https://edmed.seadatanet.org/report/854/<http:/www.seadatanet.org>)
-Pan-European infrastructure for ocean & marine data management
-# European Directory of Marine Environmental Data (EDMED)
-## Data set information
-| [Query EDMED](https://edmed.seadatanet.org/report/854/</search/> "Query EDMED — access key 'Q'") | 
-**General**  
----  
-Data set name| 
-# Wind and wave data from North Sea Platforms (1974-1987)  
-Data holding centre| [United Kingdom Offshore Operators Association](https://edmed.seadatanet.org/report/854/</org/83/> "View data centre information — access key 'D'")  
-Country| United Kingdom ![United Kingdom](https://edmed.seadatanet.org/images/flags/gb.gif)  
-Time period| Various periods between 1974 and 1987  
-Ongoing| No  
-Geographical area| North Sea  
-**Observations**  
-Parameters| Wind strength and direction; Wave direction; Spectral wave data parameters; Wave height and period statistics  
-Instruments| Anemometers; wave recorders  
-**Description**  
-Summary| The data set comprises various measurements of winds and waves, mostly collected by Marex (now Paras), on behalf of UKOOA. Wind data from Brent Platform and wind and wave data from North Cormorant were gathered by Shell. The data set is detailed below. Site Latitude Longitude Water Start Date End Date (° min) (° min) Depth (m) Beryl Field 59 30N 001 30E 140 01 Jan 1979 31 Oct 1981 Foula Data Buoy 60 07.5N 002 57W 155 05 Dec 1976 31 Dec 1978 Brent Platform 61 04N 001 43E 140 01 Jan 1978 31 May 1980 North Cormorant 61 14N 001 10E 161 01 Sep 1983 31 Aug 1987 Forties FB 57 40N 000 50E 128 01 Dec 1976 31 May 1980 Forties Field 57 40N 000 50E 128 20 Jun 1974 31 May 1977 Note that at Beryl Field wind data collection began on 01 October 1976. Also, at Forties Field, wind data are a composite from various vessels between 20 June 1974 and 21 October 1975 and were compiled from Forties FC, FA and Montrose A between 29 November 1975 and 30 November 1976. Most of the above data, except that at North Cormorant, are also held by the British Oceanographic Data Centre (BODC).  
-Originators| [United Kingdom Offshore Operators Association](https://edmed.seadatanet.org/report/854/</org/83/>)  
-**Availability**  
-Organisation| [United Kingdom Offshore Operators Association](https://edmed.seadatanet.org/report/854/</org/83/> "View organisation information — access key 'D'")  
-Availability| By negotiation  
-Contact| The Director  
-Address| United Kingdom Offshore Operators Association 3 Hans Crescent London SW1X 0LN United Kingdom  
-Telephone| +44 171 589 5255  
-**Administration**  
-Collating centre| [British Oceanographic Data Centre](https://edmed.seadatanet.org/report/854/</org/43/> "View collating centre information — access key 'C'")  
-Local identifier| 1089002  
-Global identifier| 854  
-Last revised| 2009-10-15  
-EDMED service is provided by the British Oceanographic Data Centre ©2025
-Page dynamically generated: March 01, 2025
-
-"""
