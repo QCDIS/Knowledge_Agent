@@ -29,7 +29,7 @@ streamlit run streamlit_ui.py
 
 Start streamlit using nohup
 ```
-nohup streamlit run /home/ntislam/Development/Knowledge_Agent/dev/streamlit_ui.py --server.port=8501 > streamlit.log 2>&1ps aux | grep streamlit
+nohup streamlit run /home/ntislam/Development/Knowledge_Agent/dev/streamlit_ui.py --server.port=8501 > streamlit.log 2>&1 &
 ```
 
 
