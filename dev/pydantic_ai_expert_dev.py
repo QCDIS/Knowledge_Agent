@@ -12,6 +12,7 @@ from pydantic_ai.models.openai import OpenAIModel
 from openai import AsyncOpenAI
 from supabase import Client, create_client
 from typing import List
+from pydantic_ai.models.openai import OpenAIChatModel
 
 load_dotenv()
 
@@ -30,8 +31,8 @@ supabase: Client = create_client(
 # gpt-5-mini
 # gpt-4.1-mini
 llm = os.getenv('LLM_MODEL', 'gpt-4.1')
-model = OpenAIModel("gpt-4.1", api_key=openai_api_key)
-
+#model = OpenAIModel("gpt-4.1", api_key=openai_api_key)
+model = OpenAIChatModel("gpt-4.1")
 
 print("YOU ARE HERE ......")
 
