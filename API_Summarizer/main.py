@@ -9,7 +9,6 @@ import os, json, requests
 
 from dataclasses import dataclass
 from dotenv import load_dotenv
-import logfire
 import asyncio
 import httpx
 import os
@@ -17,9 +16,10 @@ import os
 from pydantic_ai import Agent, ModelRetry, RunContext
 from pydantic_ai.models.openai import OpenAIModel
 from openai import AsyncOpenAI
-from supabase import Client, create_client
+#from supabase import Client, create_client
 from typing import List
 from openai import OpenAI
+from pydantic_ai.models.openai import OpenAIChatModel
 
 load_dotenv()
 
@@ -31,7 +31,9 @@ openai_client = AsyncOpenAI(api_key=openai_api_key)
 # gpt-5-mini
 # gpt-4.1-mini
 llm = os.getenv('LLM_MODEL', 'gpt-4.1')
-model = OpenAIModel("gpt-4.1", api_key=openai_api_key)
+#model = OpenAIModel("gpt-4.1", api_key=openai_api_key)
+model = OpenAIChatModel("gpt-4.1")
+
 
 system_prompt_summary = """
 You are an expert at Environmental earth science and you have access to all the documentation to,
