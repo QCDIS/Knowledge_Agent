@@ -51,3 +51,7 @@ build/
 # --- Docker ---
 **/.dockerignore
 docker-compose.override.yml
+
+
+# Large files
+API_Summarizer/Miniconda3-latest-Linux-x86_64.sh
