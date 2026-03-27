@@ -9,17 +9,17 @@ import os, json, requests
 
 from dataclasses import dataclass
 from dotenv import load_dotenv
+import logfire
 import asyncio
 import httpx
 import os
 
-from pydantic_ai import Agent, ModelRetry, RunContext
+#from pydantic_ai import Agent, ModelRetry, RunContext
 from pydantic_ai.models.openai import OpenAIModel
 from openai import AsyncOpenAI
 #from supabase import Client, create_client
 from typing import List
 from openai import OpenAI
-from pydantic_ai.models.openai import OpenAIChatModel
 
 load_dotenv()
 
@@ -32,20 +32,33 @@ openai_client = AsyncOpenAI(api_key=openai_api_key)
 # gpt-4.1-mini
 llm = os.getenv('LLM_MODEL', 'gpt-4.1')
 #model = OpenAIModel("gpt-4.1", api_key=openai_api_key)
-model = OpenAIChatModel("gpt-4.1")
-
-
+model = OpenAIModel("gpt-4.1")
 system_prompt_summary = """
 You are an expert at Environmental earth science and you have access to all the documentation to,
 including examples, an API reference, and other resources.
 
+Summarize the keyword in details in 7-8 lines in terms of environment.
 
-Always let the user know when you didn't find the answer in the documentation or the right URL - DO NOT MAKE YOUR OWN URLs. Only Use URLS from the 'url' key.
-Always generate your result with an appropriate URL that you get from the following context, URLS, Summary and Title.
 
-Ask follow-up questions if you do not have enough context. If the context is not clear ask try to answer with your own knowledge and also ask follow up questions.
-
+Your answer will be printed as a text. So do not print any extra or unnecessary characters in your summary.
 """
+
+system_prompt_chat = """
+You are an expert at Environmental earth science and you have access to all the documentation to,
+including examples, an API reference, and other resources.
+
+Based on the user query provide an appropriate response to the question.
+
+Also suggest one (only one) of these links suggesting further response.
+Chat based system: https://chat-envri.qcdis.org/
+Classical Search System: https://search-envri.qcdis.org/search/
+Catalogue of Search: https://catalogue.staging.envri.eu/
+
+Your answer will be printed as a text. So do not print any extra or unnecessary characters in your summary.
+"""
+
+# Your input is a Json file. Use the "pageContetnts" keys in the JSON file to summarize the response.
+# Summarize JSON for non-technical readers.
 
 app = Flask(__name__)
 api = Api(app)
@@ -55,14 +68,16 @@ client = OpenAI(api_key=openai_api_key)
 
 
 
-def summarize_json(data, max_chars: int = 12000) -> str:
+def summarize_json(data, max_chars: int = 100000) -> str:
 
-    pretty = json.dumps(data, ensure_ascii=False, indent=2)[:12000]
+    print(data)
+    pretty = json.dumps(data, ensure_ascii=False, indent=2)[:max_chars]
+    #print(pretty)
     msgs = [
-        {"role":"assistant","content":"Summarize JSON for non-technical readers in 5-10 lines."},
+        {"role":"assistant","content":system_prompt_summary},
         {"role":"user","content":f"```json\n{pretty}\n```"}
     ]
-    resp = client.chat.completions.create(model="gpt-4o-mini", messages=msgs, temperature=0.2, max_tokens=700)
+    resp = client.chat.completions.create(model="gpt-4.1", messages=msgs, temperature=0.2, max_tokens=2000)
     return resp.choices[0].message.content.strip()
 
 
@@ -79,10 +94,10 @@ def chat_response(data, max_chars: int = 12000) -> str:
 
     #pretty = json.dumps(data, ensure_ascii=False, indent=2)[:12000]
     msgs = [
-        {"role":"assistant","content":"Provide an appropriate and concise and in depth response for the following query"},
+        {"role":"assistant","content":system_prompt_chat},
         {"role":"user","content":f"```{data}\n```"}
     ]
-    resp = client.chat.completions.create(model="gpt-4o-mini", messages=msgs, temperature=0.2, max_tokens=200)
+    resp = client.chat.completions.create(model="gpt-4.1", messages=msgs, temperature=0.2, max_tokens=200)
     return resp.choices[0].message.content.strip()
 
 
