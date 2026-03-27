@@ -9,23 +9,6 @@ import logfire
 from supabase import Client, create_client
 from openai import AsyncOpenAI
 
-####### HF Transformers ######
-# from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
-# from dataclasses import dataclass
-# from pydantic_ai import Agent
-
-# # Load a Hugging Face model
-# MODEL_NAME = "meta-llama/Meta-Llama-3.1-8B-Instruct"
-# tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-# model = AutoModelForCausalLM.from_pretrained(MODEL_NAME, device_map="auto")
-
-# # Create a text generation pipeline
-# hf_pipeline = pipeline("text-generation", model=model, tokenizer=tokenizer)
-
-
-# ####### HF Transformers ######
-
-
 
 # Import all the message part classes
 from pydantic_ai.messages import (
@@ -71,6 +54,28 @@ class ChatMessage(TypedDict):
     timestamp: str
     content: str
 
+
+def inject_matomo():
+    if "matomo_loaded" not in st.session_state:
+        st.session_state.matomo_loaded = True
+
+        st.components.v1.html("""
+        <!-- Matomo -->
+            <script>
+            var _paq = window._paq = window._paq || [];
+            /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+            _paq.push(['trackPageView']);
+            _paq.push(['enableLinkTracking']);
+            (function() {
+                var u="//analytics.envri.eu/";
+                _paq.push(['setTrackerUrl', u+'matomo.php']);
+                _paq.push(['setSiteId', '6']);
+                var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+                g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+            })();
+            </script>
+            <!-- End Matomo Code -->
+        """)
 
 def display_message_part(part):
     """
@@ -211,6 +216,9 @@ async def run_agent_with_streaming(user_input: str):
             st.session_state.messages.append(chosen_assistant)
 
 async def main():
+
+    inject_matomo()
+
     st.title("Environmental Expert...")
     st.write("Ask any question about the Environment and Earth Science")
 

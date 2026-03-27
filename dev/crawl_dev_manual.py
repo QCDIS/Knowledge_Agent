@@ -254,8 +254,8 @@ async def crawl_parallel(urls: List[str], max_concurrent: int = 5):
 # one time use functions
 def get_pydentic_ai_docs_urls_once():
     try:
-        urls = ["https://pypi.org/project/envrihub/", 
-                "https://pypi.org/project/ecv-data-access/"]
+        urls = ["https://zenodo.org/communities/envrihubnext/records?q=&l=list&p=1&s=10&sort=newest", 
+                "https://zenodo.org/communities/envrihubnext/records?q=&l=list&p=2&s=10&sort=newest"]
         
 
         return urls
@@ -408,49 +408,26 @@ async def processIAGOS(folder):
 
 
 async def main():
-    # IAGOS_folder = "/home/nafis/Development/Knowledge_Agent/RI_Data/IAGOS/"
-    # await processIAGOS(IAGOS_folder)
+   
+    # urls = get_pydentic_ai_docs_urls_once()
+    
+  
+    # # CRAWL ALL (UNCOMMENT THIS WHEN TESTING DONE)
+    # if not urls:
+    #     print("No URLs found to crawl")
+    #     return
+    
+    # print(f"Found {len(urls)} URLs to crawl")
+    # await crawl_parallel(urls)
+    url = "https://eosc.eu/wp-content/uploads/2024/05/EOSC-A_GA8_20240527-28_Paper-G_Update_EOSC_Nodes_requirements-DRAFT-v240524.pdf"
+    text = """
 
-    #return 
-    # Get URLs from Pydantic AI docs
-    
-    # CRAWL ALL (UNCOMMENT THIS WHEN TESTING DONE)
-    #urls = get_pydantic_ai_docs_urls()
+    Building the EOSC Federation:requirements for EOSC Nodes[draft v 24/5]Disclaimer: This document is primarily addressing entities interested in enrolling as EOSC Nodes.The requirements will evolve during the uptake of the EOSC Federation and are planned to bespecified in the EOSC Federation Handbook. The document is not about the onboarding of serviceproviders to EOSC Nodes, and it does not elaborate on the steps to be taken for the uptake of theEOSC Federation.The European Open Science Cloud (EOSC), the Common European Data Space for R&I1, is theEU’s flagship initiative for the digital transformation of research.The vision for EOSC is to put in place a system for researchers in Europe to store, share, process,analyse and reuse, within and across disciplines and borders, FAIR research outputs, such asresearch data, publications and software.It is rooted in open science and deployed as a network between data repositories and services ofresearch infrastructures and other scientific service providers to develop a trusted federation ofresearch data and services for R&I in Europe. The development of the building blocks of the EOSCFederation will count on the latest community know-how, adopting and building on well-established and well-functioning existing structures and frameworks.EOSC is transitioning to a fully operational mode: the EC-procured ‘Managed Services for theEOSC Platform’ are currently being developed and gradually put in operation under the brandingof the EOSC EU Node2, making it the first node of the EOSC Federation.At the same time, partly through investments by the EU, its Member States and Horizon Europeassociated countries, several thematic communities and national initiatives are maturing theirinfrastructures and services for EOSC readiness.The EOSC Nodes will be the entry points for end users to the entire EOSC Federation, with eachnode offering its own services (including data reposing and accessing services) and possiblyservices of other providers (‘third-party’ services onboarded to the EOSC Node), in compliancewith the EOSC Federation’s common rules and requirements as well as the own policies of theEOSC Node. An organisation may therefore enrol its activities as an EOSC Node in the EOSCFederation or onboard its services on an existing EOSC Node as a provider.These nodes will thus offer (scientific) services and/or data that adhere to the FAIR principles,including curated research outputs (such as publications, datasets, software, etc.), specialised1 https://digital-strategy.ec.europa.eu/en/library/second-staff-working-document-data-spaces2 https://open-science-cloud.ec.europa.eu/2knowledge, applications, tools, infrastructure and/or platform services, and/or data processingand storage capabilities.Organisations that enrol their activities in the EOSC Federation as nodes will benefit from:● Broader outreach and connectivity: By enrolling in the EOSC Federation as nodes,organisations will gain access to a wider pool of users, within and especially beyond theirspecific thematic area and/or geographical focus, enabling innovative use and exploitationof their data and services, and potentially expanding beyond research to industry and thepublic sector as EOSC will progressively connect to the other currently deployed CommonEuropean Data Spaces. The end users will profit from a much broader access to FAIR dataand interoperable services through the EOSC Federation, enriching their own research, aswell as a widened recognition of their own contributions to the EOSC Federation.● Economies of scale: EOSC Nodes may take advantage of commonly pooled resources andcapabilities across the federation such as AAI, resource catalogues and registry services,monitoring, accounting, helpdesk etc, reducing duplication of research and developmentcosts by each node and strengthening their business models.● Europe-wide standards and policies: Organisations enrolling nodes in the EOSC Federationwill take part in shaping and adopting the latest European standards for research outputmanagement and service provision and will seamlessly comply with EU research and digitalpolicies as embodied in the EOSC Federation rules and policies.Below we set out the requirements for organisations to enrol as EOSC Nodes or to be considereda ‘candidate node’ already in the early uptake of the EOSC Federation.Requirements for EOSC NodesOrganisations responsible for EOSC Nodes shall ensure the quality of services offered by and tothe EOSC Federation, which translates into specific responsibilities towards other EOSC Nodes,towards third-party service providers and towards their end users.The requirements for an organisation that is responsible for an EOSC Node aim to ensure that itwill have the operational, administrative and legal capacity to take up this responsibility and to beable to contribute to the continuous development of EOSC according to its long-term vision.These requirements notably include:● Legal status: the organisation responsible for the EOSC Node must be a public-benefit legalentity (for now located in an EU Member State or an associated country) with legalpersonality and full legal capacity recognised in all Member States and associatedcountries, or an intergovernmental research organisation of European interest. Theorganisation must be able to conclude possible agreements with other partnersparticipating in the activities of the node itself (e.g. providers making their data or servicesavailable to EOSC through the node), with other nodes and/or with a potential futureorganisation representing the EOSC Federation.● Large-scale, quality service provision: EOSC Nodes shall be able to provide services atscale that are commonly used and endorsed by the research communities, operating in acompliant, sovereign, and secure environment.3● Capacity to onboard third-party services: beyond offering its own services, an EOSC Nodemay have the capacity to onboard third-party services on it and to ensure that these servicescomply with the common quality standards, rules, and policies of the federation, includingthose related to security, sovereignty, transparency, and trustworthiness of these services.● Capacity to contribute to EOSC core capabilities: EOSC Nodes shall have the capacity toutilise and contribute to specified core capabilities to be offered across the federation suchas Authentication and Authorization Infrastructure, resource catalogues and registryservices, monitoring, accounting and helpdesk.● Compliance with EOSC federation rules and standards: organisations that are responsiblefor EOSC Nodes retain autonomy to select which services they offer or share within theEOSC Federation and to set specific policies for access and use of these services, includingpricing-related policies for cost-intensive services. EOSC Nodes shall provide access totheir services under documented policies and be able to comply or to provide action plan toachieve such compliance with possible federation-wide agreed policies, protocols,standards and participation and access rules, including the EOSC interoperabilityframework, security (incl. cybersecurity) and sovereignty standards.● Effective monitoring: EOSC Nodes shall be able to monitor and report the activity of theservices they provide within the EOSC Federation (e.g. monitoring usage of data, servicesand other relevant activities) to ensure the quality of the provided services, including theonboarded services provided by third parties, and the compliance with the Federation’srules and standards.● Community engagement: EOSC Nodes will strive to contribute to community engagementactivities of the EOSC Federation, such as training activities, consultations, usability testing,communication, etc.● Sustainability: EOSC Nodes shall be able to confirm continued operations compliant to theEOSC Federation’s requirements for ideally 5 years or more to ensure that they are reliablemembers of the EOSC Federation, and they shall be transparent about their measures toguarantee the necessary lifetime.The above requirements set the framework and will be refined and elaborated in the months tocome, based also on initial experiences with candidate nodes. Estimates about costs and benefitswill be collected from the ‘candidate EOSC Nodes’.Minimal requirements for ‘candidate EOSC Nodes’It is foreseen to start with an initial critical mass of prospective EOSC Nodes, possibly includingnational nodes (nodes related to a certain country / nation), thematic nodes, (single sited and/ordistributed) research infrastructure nodes, or e-infrastructure nodes, and then to progressivelyexpand the federation according to the readiness of more prospective nodes and to evolve therequirements accordingly, based on the experience gained by the initial operation of the EOSCFederation.The minimum requirements for candidate EOSC Nodes are a subset of the requirements for EOSCNodes, in particular regarding the legal status, sustainability, core capabilities/service provisionas well as rules and standards:4● The legal entity representing the candidate EOSC Node must have the authority to establishagreements.● The legal entity responsible for the candidate EOSC Node should commit to providingsufficient resources to ensure its operation for at least 24 months, ideally for 5 years ormore.● The candidate EOSC Node must have sufficient capacity and expertise to be able to ensurethat the data and services it includes can be operated at a sufficiently high Technology andReadiness Level ensuring robust, reliable and secure performance.● Data and Services must be at least findable and accessible to registered EOSC users andfulfil the FAIR principles in general, while services such as compute and storage capacityshould be available in sufficient quantities to multiple user groups.    
 
 
-
-    # CRAWL ONCE
-    ############ THIS IS MANUAL TASK FOR TESTING AND DEMO, MUST BE REMOVED ################
-    urls = get_pydentic_ai_docs_urls_once()
+    """
+    await process_and_store_document(url, text)
     
-    # with open("../RI_Data/code/envri_hub_library_usage.txt", "r") as file:
-    #         code = " ".join([line.strip() for line in file if line.strip()])
-    #         print(code)
-    # manual_url = ["https://gitlab.a.incd.pt/envri-hub-next/analytical-workflow-templates/-/blob/main/ENVRI%20HUB%20library%20usage.ipynb?ref_type=heads"]
-    
-    # with open("../RI_Data/code/analytical_framework_template.txt", "r") as file:
-    #         code = " ".join([line.strip() for line in file if line.strip()])
-    #         print(code)
-    # manual_url = ["https://gitlab.a.incd.pt/envri-hub-next/analytical-workflow-templates"]
-    # await process_and_store_document(manual_url, code)
-
-    # with open("../RI_Data/code/envri_hub_vre_library.txt", "r") as file:
-    #         code = " ".join([line.strip() for line in file if line.strip()])
-    #         print(code)
-    # manual_url = ["https://gitlab.a.incd.pt/envri-hub-next/vre-lib"]
-    
-    
-    #await process_and_store_document(manual_url, code)
-    ##################
-    
-    
-    # CRAWL ALL (UNCOMMENT THIS WHEN TESTING DONE)
-    if not urls:
-        print("No URLs found to crawl")
-        return
-    
-    print(f"Found {len(urls)} URLs to crawl")
-    await crawl_parallel(urls)
 
 if __name__ == "__main__":
     asyncio.run(main())
