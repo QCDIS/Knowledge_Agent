@@ -253,6 +253,9 @@ def get_pydentic_ai_docs_urls_once():
                 "https://vocab.nerc.ac.uk/collection/EXV/current/", 
                 "https://vocab.nerc.ac.uk/search_nvs/EXV/", 
                 "https://library.wmo.int/records/item/58111-the-2022-gcos-ecvs-requirements"]
+        
+        urls = ["https://geo-knowledge-hub-dev-assets.s3.us-east-1.amazonaws.com/envrihub/index.html",
+                "https://gkhub.earthobservations.org/packages/cgxq5-tay80"]
 
         return urls
 
@@ -331,14 +334,20 @@ def get_pydantic_ai_docs_urls():
         # with open("RI_Data/AnaEE/urls.txt", "r") as file:
         #     anaee_urls = [line.strip() for line in file if line.strip()]
 
-        with open("RI_Data/ECV/urls.txt", "r") as file:
-            ecv_urls = [line.strip() for line in file if line.strip()]
+        # with open("RI_Data/ECV/urls.txt", "r") as file:
+        #     ecv_urls = [line.strip() for line in file if line.strip()]
 
         # urls = seadatanet_urls + icos_urls + elter_urls + anaee_urls + ecv_urls + envri_urls
-        with open("RI_Data/RI/explored_urls.txt", "r") as file:
+        print("You are here ...")
+        with open("../RI_Data/RI/explored_urls.txt", "r") as file:
             RI_urls = [line.strip() for line in file if line.strip()]
         
-        urls = RI_urls + ecv_urls
+        #urls = RI_urls + ecv_urls
+        urls = RI_urls
+       
+
+        # urls = ["https://geo-knowledge-hub-dev-assets.s3.us-east-1.amazonaws.com/envrihub/index.html",
+        #         "https://gkhub.earthobservations.org/packages/cgxq5-tay80"]
         print("Printing URLs ", urls)
 
     except Exception as e:
@@ -411,13 +420,13 @@ async def main():
     # Get URLs from Pydantic AI docs
     
     # CRAWL ALL (UNCOMMENT THIS WHEN TESTING DONE)
-    #urls = get_pydantic_ai_docs_urls()
+    urls = get_pydantic_ai_docs_urls()
 
 
 
     # CRAWL ONCE
     ############ THIS IS MANUAL TASK FOR TESTING AND DEMO, MUST BE REMOVED ################
-    urls = get_pydentic_ai_docs_urls_once()
+    #urls = get_pydentic_ai_docs_urls_once()
     # with open("../RI_Data/code/envri_hub_library_usage.txt", "r") as file:
     #         code = " ".join([line.strip() for line in file if line.strip()])
     #         print(code)

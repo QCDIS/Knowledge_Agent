@@ -55,6 +55,143 @@ class ChatMessage(TypedDict):
     content: str
 
 
+def inject_privacy_popup():
+    if "privacy_popup_loaded" not in st.session_state:
+        st.session_state.privacy_popup_loaded = True
+
+        st.components.v1.html("""
+        <style>
+                    .privacy-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            }
+
+            .privacy-modal {
+            width: 90%;
+            max-width: 520px;
+            background: #fff;
+            border-radius: 14px;
+            padding: 24px;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+            text-align: center;
+            }
+
+            .privacy-modal h3 {
+            margin: 0 0 12px 0;
+            }
+
+            .privacy-text {
+            margin: 0 0 16px 0;
+            color: #444;
+            line-height: 1.5;
+            }
+
+            .privacy-link-wrap {
+            margin: 0 0 20px 0;
+            }
+
+            .privacy-link {
+            display: inline-block;
+            padding: 10px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            color: #222;
+            font-weight: 600;
+            }
+
+            .privacy-link:hover {
+            background: #ececec;
+            }
+
+            .privacy-actions {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            }
+
+            .privacy-accept-btn,
+            .privacy-decline-btn {
+            padding: 10px 22px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            }
+        </style>
+
+        <div class="privacy-overlay" id="privacy-popup">
+        <div class="privacy-modal">
+            <h3>Privacy Statement</h3>
+
+            <p class="privacy-text">
+            Please read our privacy statement before continuing.
+            </p>
+
+            <p class="privacy-link-wrap">
+                <a
+                    href="https://search-envri.qcdis.org/search/static/privacy/privacy_statement.pdf"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="privacy-link">
+                    Open Privacy Statement (PDF)
+                </a>
+            </p>
+
+            <div class="privacy-actions">
+            <button type="button" id="accept-privacy-btn" class="privacy-accept-btn">Yes</button>
+            <button type="button" id="decline-privacy-btn" class="privacy-decline-btn">No</button>
+            </div>
+        </div>
+        </div>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const popup = document.getElementById("privacy-popup");
+    const acceptBtn = document.getElementById("accept-privacy-btn");
+    const declineBtn = document.getElementById("decline-privacy-btn");
+
+    if (localStorage.getItem("privacyAccepted") === "true") {
+      popup.style.display = "none";
+      document.body.style.overflow = "";
+      return;
+    }
+
+    popup.style.display = "flex";
+    document.body.style.overflow = "hidden";
+
+    acceptBtn.addEventListener("click", function () {
+      popup.style.display = "none";
+      document.body.style.overflow = "";
+      localStorage.setItem("privacyAccepted", "true");
+    });
+
+    declineBtn.addEventListener("click", function () {
+      popup.style.display = "none";
+      document.body.style.overflow = "";
+      localStorage.setItem("privacyAccepted", "true");
+    });
+  });
+</script>
+
+<script>
+  declineBtn.addEventListener("click", function () {
+    window.close();
+    setTimeout(function () {
+      window.location.href = "https://search-envri.qcdis.org/search";
+    }, 200);
+  });
+</script>
+                              
+        
+        </script>
+        """, height=700, width=900)
+
 def inject_matomo():
     if "matomo_loaded" not in st.session_state:
         st.session_state.matomo_loaded = True
@@ -75,7 +212,9 @@ def inject_matomo():
             })();
             </script>
             <!-- End Matomo Code -->
-        """)
+        """,
+            height=0,
+            width=0,)
 
 def display_message_part(part):
     """
@@ -215,43 +354,148 @@ async def run_agent_with_streaming(user_input: str):
         if chosen_assistant:
             st.session_state.messages.append(chosen_assistant)
 
-async def main():
 
-    inject_matomo()
+
+async def handle_user_query(user_input: str):
+    """
+    Handles both:
+    1. manually typed chat input
+    2. query forwarded from another search site
+    """
+
+    st.session_state.messages.append(
+        ModelRequest(parts=[UserPromptPart(content=user_input)])
+    )
+
+    with st.chat_message("user"):
+        st.markdown(user_input)
+
+    with st.chat_message("assistant"):
+        await run_agent_with_streaming(user_input)
+
+
+async def handle_user_input(user_input: str):
+    st.session_state.messages.append(
+        ModelRequest(parts=[UserPromptPart(content=user_input)])
+    )
+
+    with st.chat_message("user"):
+        st.markdown(user_input)
+
+    with st.chat_message("assistant"):
+        await run_agent_with_streaming(user_input)
+
+
+async def main():
 
     st.title("Environmental Expert...")
     st.write("Ask any question about the Environment and Earth Science")
 
-    # Initialize chat history in session state if not present
+    inject_matomo()
+    # inject_privacy_popup()
+
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
-    # Display all messages from the conversation so far
-    # Each message is either a ModelRequest or ModelResponse.
-    # We iterate over their parts to decide how to display them.
+    if "handled_forwarded_queries" not in st.session_state:
+        st.session_state.handled_forwarded_queries = set()
+
+    forwarded_query = st.query_params.get("q", "").strip()
+
+    print("Printing forwarded query:", forwarded_query)
+
+    # Display previous conversation
     for msg in st.session_state.messages:
         if isinstance(msg, ModelRequest) or isinstance(msg, ModelResponse):
             for part in msg.parts:
                 display_message_part(part)
 
-    # Chat input for the user
+    # Case 1: query came from external website
+    if forwarded_query:
+        if forwarded_query not in st.session_state.handled_forwarded_queries:
+            print("Handling forwarded query:", forwarded_query)
+
+            st.session_state.handled_forwarded_queries.add(forwarded_query)
+
+            await handle_user_input(forwarded_query)
+
+            # Optional but recommended:
+            # remove q from URL so refresh does not resubmit
+            st.query_params.clear()
+            st.rerun()
+
+    # Case 2: normal Streamlit chat input
     user_input = st.chat_input("What questions do you have about Environment?")
 
     if user_input:
-        # We append a new request to the conversation explicitly
-        st.session_state.messages.append(
-            ModelRequest(parts=[UserPromptPart(content=user_input)])
-        )
+        await handle_user_input(user_input)
 
-        # Display user prompt in the UI
-        with st.chat_message("user"):
-            st.markdown(user_input)
+# Original main function
+# async def main():
 
-        # Display the assistant's partial response while streaming
-        with st.chat_message("assistant"):
-            # Actually run the agent now, streaming the text
-            await run_agent_with_streaming(user_input)
+#     st.title("Environmental Expert...")
+#     st.write("Ask any question about the Environment and Earth Science")
+
+#     inject_matomo()
+#     #inject_privacy_popup()
+
+    
+
+#     # Initialize chat history in session state if not present
+#     if "messages" not in st.session_state:
+#         st.session_state.messages = []
+
+
+#     forwarded_query = st.query_params.get("q", "").strip()
+#     print("Printing forwarded query", forwarded_query)
+
+#     # Display all messages from the conversation so far
+#     # Each message is either a ModelRequest or ModelResponse.
+#     # We iterate over their parts to decide how to display them.
+#     for msg in st.session_state.messages:
+#         if isinstance(msg, ModelRequest) or isinstance(msg, ModelResponse):
+#             for part in msg.parts:
+#                 display_message_part(part)
+
+#     # Chat input for the user
+#     forwarded = False
+#     if forwarded_query != "":
+#         forwarded = True
+#         #user_input = st.chat_input(forwarded_query)
+#         print("You are here ... inside forwarded query")
+#         st.session_state.chat_input = forwarded_query
+#         #st.chat_input(key="chat_input")
+#         user_input = forwarded_query
+
+#     else:
+#         user_input = st.chat_input("What questions do you have about Environment?")
+
+# # st.session_state.chat_input = "Hello, world!"
+# # st.chat_input(key="chat_input")
+
+#     if user_input:
+#         # We append a new request to the conversation explicitly
+#         st.session_state.messages.append(
+#             ModelRequest(parts=[UserPromptPart(content=user_input)])
+#         )
+
+#         # Display user prompt in the UI
+#         with st.chat_message("user"):
+#             st.markdown(user_input)
+
+
+#         # Display the assistant's partial response while streaming
+#         with st.chat_message("assistant"):
+#             # Actually run the agent now, streaming the text
+#             await run_agent_with_streaming(user_input)
+
+#         if forwarded:
+#             user_input = st.chat_input("What questions do you have about Environment?")
+#             forwarded = False
+
 
 
 if __name__ == "__main__":
     asyncio.run(main())
+
+# https://chat-envri.qcdis.org/?q=air%20pollution%20in%20Europe

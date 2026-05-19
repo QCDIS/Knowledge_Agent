@@ -257,7 +257,10 @@ def get_pydentic_ai_docs_urls_once():
         urls = ["https://zenodo.org/communities/envrihubnext/records?q=&l=list&p=1&s=10&sort=newest", 
                 "https://zenodo.org/communities/envrihubnext/records?q=&l=list&p=2&s=10&sort=newest"]
         
-
+        urls = ["https://geo-knowledge-hub-dev-assets.s3.us-east-1.amazonaws.com/envrihub/index.html",
+                "https://gkhub.earthobservations.org/packages/cgxq5-tay80"]
+        
+        print("Printing URLs to be indexed ...", urls)
         return urls
 
     except Exception as e:
