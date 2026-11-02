@@ -8,7 +8,8 @@ import json
 import logfire
 from supabase import Client, create_client
 from openai import AsyncOpenAI
-
+import base64
+from pathlib import Path
 
 # Import all the message part classes
 from pydantic_ai.messages import (
@@ -24,13 +25,26 @@ from pydantic_ai.messages import (
     ModelMessagesTypeAdapter
 )
 from pydantic_ai_expert_dev import pydantic_ai_expert, PydanticAIDeps
+from pydantic_ai_expert_dev import pydantic_ai_expert, PydanticAIDeps, build_model, LLM_PROVIDERS
 
 # Load environment variables
 from dotenv import load_dotenv
 load_dotenv()
 
 
+LOGO_PATH = Path(__file__).parent / "images" / "image.png"
 
+def _load_logo_as_data_uri(path: Path) -> str:
+    mime = "image/svg+xml" if path.suffix.lower() == ".svg" else "image/png"
+    encoded = base64.b64encode(path.read_bytes()).decode()
+    return f"data:{mime};base64,{encoded}"
+
+_LOGO_DATA_URI = _load_logo_as_data_uri(LOGO_PATH)
+
+def _load_logo_as_data_uri(path: Path) -> str:
+    mime = "image/svg+xml" if path.suffix.lower() == ".svg" else "image/png"
+    encoded = base64.b64encode(path.read_bytes()).decode()
+    return f"data:{mime};base64,{encoded}"
 
 openai_api_key = os.getenv("OPENAI_API_KEY")
 db_password = os.getenv("DB_PASSWORD")
@@ -53,6 +67,161 @@ class ChatMessage(TypedDict):
     role: Literal['user', 'model']
     timestamp: str
     content: str
+
+
+def inject_hide_sidebar_collapse():
+    st.components.v1.html("""
+    <script>
+    function hideSidebarCollapseControls() {
+        const doc = window.parent.document;
+        const all = doc.querySelectorAll('button, div[data-testid]');
+        all.forEach(function(el) {
+            const label = (
+                (el.getAttribute('aria-label') || '') + ' ' +
+                (el.getAttribute('data-testid') || '')
+            ).toLowerCase();
+            if (label.includes('sidebar') && (label.includes('collapse') || label.includes('control'))) {
+                el.style.display = 'none';
+            }
+        });
+    }
+    hideSidebarCollapseControls();
+    const observer = new MutationObserver(hideSidebarCollapseControls);
+    observer.observe(window.parent.document.body, { childList: true, subtree: true });
+    </script>
+    """, height=0, width=0)
+
+def inject_topbar():
+    st.markdown(f"""
+    <style>
+      header[data-testid="stHeader"] {{
+        display: none;
+      }}
+
+      /* Hide the sidebar's collapse/expand control entirely */
+      button[data-testid="stSidebarCollapseButton"],
+      div[data-testid="collapsedControl"],
+      button[data-testid="stSidebarCollapsedControl"],
+      div[data-testid="stSidebarCollapsedControl"] {{
+        display: none !important;
+      }}
+
+      .envri-topbar {{
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 56px;
+        z-index: 1000000;
+        display: flex;
+        align-items: center;
+        background: linear-gradient(to right, #0071f3, #73b4ff);
+        padding: 0 10px;
+        color: #fff;
+        font-family: 'Poppins', sans-serif;
+        box-sizing: border-box;
+      }}
+      .envri-brand {{ display: flex; align-items: center; gap: 10px; }}
+      .envri-logo {{ width: 65px; height: auto; padding: 6px; margin-top: -5px; flex-shrink: 0; }}
+      .envri-kb-label {{ font-weight: 600; font-size: 16px; letter-spacing: 0.3px; color: #fff; }}
+      .envri-brand-text {{ display: flex; flex-direction: column; line-height: 1.1; }}
+      .envri-brand-text .name {{ font-weight: 600; font-size: 17px; letter-spacing: 0.5px; }}
+      .envri-brand-text .sub {{ font-weight: 300; font-size: 13px; color: rgba(255,255,255,0.85); }}
+
+      section[data-testid="stSidebar"] {{
+        padding-top: 56px;
+      }}
+      div[data-testid="stAppViewContainer"] .block-container {{
+        padding-top: 2rem;
+      }}
+    </style>
+
+    <div class="envri-topbar">
+      <div class="envri-brand">
+        <img class="envri-logo" src="{_LOGO_DATA_URI}" alt="ENVRI logo">
+        <span class="envri-kb-label">Knowledge Base</span>
+      </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown(f"""
+    <style>
+      header[data-testid="stHeader"] {{
+        display: none;
+      }}
+
+      .envri-topbar {{
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 56px;
+        z-index: 1000000;
+        display: flex;
+        align-items: center;
+        background: linear-gradient(to right, #0071f3, #73b4ff);
+        padding: 0 10px;
+        color: #fff;
+        font-family: 'Poppins', sans-serif;
+        box-sizing: border-box;
+      }}
+      .envri-brand {{ display: flex; align-items: center; gap: 10px; }}
+      .envri-logo {{ width: 65px; height: auto; padding: 6px; margin-top: -5px; flex-shrink: 0; }}
+      .envri-kb-label {{ font-weight: 600; font-size: 16px; letter-spacing: 0.3px; color: #fff; }}
+      .envri-brand-text {{ display: flex; flex-direction: column; line-height: 1.1; }}
+      .envri-brand-text .name {{ font-weight: 600; font-size: 17px; letter-spacing: 0.5px; }}
+      .envri-brand-text .sub {{ font-weight: 300; font-size: 13px; color: rgba(255,255,255,0.85); }}
+
+      section[data-testid="stSidebar"] {{
+        padding-top: 56px;
+      }}
+      div[data-testid="stAppViewContainer"] .block-container {{
+        padding-top: 2rem !important;
+      }}
+
+    button[data-testid="stSidebarCollapseButton"],
+    div[data-testid="collapsedControl"],
+    button[data-testid="stSidebarCollapsedControl"],
+
+    </style>
+
+    <div class="envri-topbar">
+      <div class="envri-brand">
+        <img class="envri-logo" src="{_LOGO_DATA_URI}" alt="ENVRI logo">
+        <span class="envri-kb-label">Knowledge Base</span>
+      </div>
+    </div>
+    """, unsafe_allow_html=True)
+def inject_capability_strip():
+    st.markdown("""
+    <style>
+      .envri-caps {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: 14px 0 26px 0;
+      }
+      .envri-cap-chip {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: #eef4ff;
+        border: 1px solid #cfe0ff;
+        color: #0b4fa8;
+        border-radius: 999px;
+        padding: 6px 14px;
+        font-size: 13px;
+        font-weight: 500;
+        white-space: nowrap;
+      }
+    </style>
+    <div class="envri-caps">
+      <div class="envri-cap-chip">📚 Answers grounded in curated ENVRI documentation, not guesswork</div>
+      <div class="envri-cap-chip">🔗 Cites real source URLs — never fabricates links</div>
+      <div class="envri-cap-chip">🔀 Switch between OpenAI and EGI's open-source LLM anytime</div>
+      <div class="envri-cap-chip">🌍 Purpose-built for Earth &amp; environmental science</div>
+    </div>
+    """, unsafe_allow_html=True)
 
 
 def inject_privacy_popup():
@@ -206,7 +375,7 @@ def inject_matomo():
             (function() {
                 var u="//analytics.envri.eu/";
                 _paq.push(['setTrackerUrl', u+'matomo.php']);
-                _paq.push(['setSiteId', '6']);
+                _paq.push(['setSiteId', '7']);
                 var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
                 g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
             })();
@@ -215,6 +384,23 @@ def inject_matomo():
         """,
             height=0,
             width=0,)
+        
+
+# <!-- Matomo -->
+# <script>
+#   var _paq = window._paq = window._paq || [];
+#   /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+#   _paq.push(['trackPageView']);
+#   _paq.push(['enableLinkTracking']);
+#   (function() {
+#     var u="//analytics.envri.eu/";
+#     _paq.push(['setTrackerUrl', u+'matomo.php']);
+#     _paq.push(['setSiteId', '7']);
+#     var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+#     g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+#   })();
+# </script>
+# <!-- End Matomo Code -->
 
 def display_message_part(part):
     """
@@ -285,13 +471,16 @@ def display_message_part(part):
 async def run_agent_with_streaming(user_input: str):
     deps = PydanticAIDeps(
         supabase=supabase,
-        openai_client=openai_client
+        openai_client=openai_client  # embeddings stay on OpenAI regardless of chat provider
     )
+
+    selected_model = build_model(st.session_state.get("llm_provider", "openai"))
 
     async with pydantic_ai_expert.run_stream(
         user_input,
         deps=deps,
-        message_history=st.session_state.messages[:-1],  # history up to (but not incl.) this turn's user msg
+        model=selected_model,          # <-- per-run override, only this line is new
+        message_history=st.session_state.messages[:-1],
     ) as result:
         # Live stream to UI (not persisted)
         partial_text = ""
@@ -388,11 +577,32 @@ async def handle_user_input(user_input: str):
 
 async def main():
 
+    inject_topbar() 
+    inject_hide_sidebar_collapse()
     st.title("Environmental Expert...")
     st.write("Ask any question about the Environment and Earth Science")
+    inject_capability_strip() 
 
     inject_matomo()
     # inject_privacy_popup()
+
+    # For toggling llms
+    if "llm_provider" not in st.session_state:
+        st.session_state.llm_provider = "openai_gpt41"
+
+    with st.sidebar:
+        st.subheader("LLM Provider")
+        for key, cfg in LLM_PROVIDERS.items():
+            active = st.session_state.llm_provider == key
+            if st.button(
+                ("✅ " if active else "") + cfg["label"],
+                key=f"llm_btn_{key}",
+                type="primary" if active else "secondary",
+                use_container_width=True,
+            ):
+                st.session_state.llm_provider = key
+                st.rerun()
+
 
     if "messages" not in st.session_state:
         st.session_state.messages = []
